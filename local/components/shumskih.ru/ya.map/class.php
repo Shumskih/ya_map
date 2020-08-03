@@ -36,7 +36,6 @@ class YaMap extends CBitrixComponent
         if (isset($_POST['saveForm'])) {
             $this->endResultCache();
             $this->arResult['SAVED'] = $this->save();
-            LocalRedirect($this->app()->GetCurPage(false));
         }
 
         $this->includeComponentTemplate();

@@ -42,13 +42,11 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
         let locality = document.querySelector('#locality'),
             street = document.querySelector('#street'),
             building = document.querySelector('#building'),
-            btn = document.querySelector('#formSubmitter'),
             coordinatesInput = document.querySelector('#coordinates'),
             address = 'Москва',
             myMap;
 
         locality.addEventListener('change', () => {
-            console.log(buildGeocodeUrl(locality.value, street.value, building.value));
             address = buildGeocodeUrl(locality.value, street.value, building.value);
             if (address && myMap) {
                 myMap.destroy();
@@ -58,7 +56,6 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
             }
         });
         street.addEventListener('change', () => {
-            console.log(buildGeocodeUrl(locality.value, street.value, building.value));
             address = buildGeocodeUrl(locality.value, street.value, building.value);
             if (address && myMap) {
                 myMap.destroy();
@@ -68,7 +65,6 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
             }
         });
         building.addEventListener('change', () => {
-            console.log(buildGeocodeUrl(locality.value, street.value, building.value));
             address = buildGeocodeUrl(locality.value, street.value, building.value);
             if (address && myMap) {
                 myMap.destroy();
@@ -80,61 +76,19 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
 
         if (!myMap) {
             buildMap();
-
             buildGeocode();
         }
 
         function buildMap() {
-            let geolocation = ymaps.geolocation;
             myMap = new ymaps.Map('map', {
                 center: [55, 34],
                 zoom: 9
             });
-
-            // Сравним положение, вычисленное по ip пользователя и
-            // положение, вычисленное средствами браузера.
-            geolocation.get({
-                provider: 'yandex',
-                mapStateAutoApply: true
-            }).then(function (result) {
-                let yandexLocationPlacemark = result.geoObjects.get(0);
-                // Красным цветом пометим положение, вычисленное через ip.
-                result.geoObjects.options.set('preset', 'islands#blueIcon');
-                result.geoObjects.options.set('draggable', 'true');
-                yandexLocationPlacemark.properties.set({
-                    balloonContentBody: 'Мое местоположение'
-                });
-                myMap.geoObjects.add(result.geoObjects);
-            });
-
-            geolocation.get({
-                provider: 'browser',
-                mapStateAutoApply: true
-            }).then(function (result) {
-                let browserLocationPlacemark = result.geoObjects.get(0);
-                // Синим цветом пометим положение, полученное через браузер.
-                // Если браузер не поддерживает эту функциональность, метка не будет добавлена на карту.
-                result.geoObjects.options.set('preset', 'islands#blueIcon');
-                result.geoObjects.options.set('draggable', 'true');
-                browserLocationPlacemark.options.set({
-                    draggable: true
-                });
-                myMap.geoObjects.add(result.geoObjects);
-            });
         }
 
         function buildGeocode() {
-            // Поиск координат центра Нижнего Новгорода.
+            // Поиск координат
             ymaps.geocode(address, {
-                /**
-                 * Опции запроса
-                 * @see https://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/geocode.xml
-                 */
-                // Сортировка результатов от центра окна карты.
-                // boundedBy: myMap.getBounds(),
-                // strictBounds: true,
-                // Вместе с опцией boundedBy будет искать строго внутри области, указанной в boundedBy.
-                // Если нужен только один результат, экономим трафик пользователей.
                 results: 1
             })
                 .then(function (res) {
@@ -145,6 +99,7 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
                         // Область видимости геообъекта.
                         bounds = placemark.properties.get('boundedBy');
 
+                    // Заполняет координатами сурытое поле формы
                     coordinatesInput.value = coords;
 
                     placemark.options.set('preset', 'islands#blueIcon');
@@ -162,11 +117,9 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
 
                     placemark.events.add("dragend", function (e) {
                         coords = this.geometry.getCoordinates();
-                        console.log(coords);
                         let coordsForSave = [coords[0].toFixed(6), coords[1].toFixed(6)];
                         placemark.geometry.setCoordinates(coordsForSave);
                         coordinatesInput.value = coordsForSave;
-                        console.log(coordsForSave);
                     }, placemark);
 
 
@@ -174,12 +127,15 @@ $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU"
         }
     }
 
+    /*
+    Строит строку запроса, состоящую из названия населённого пункта, названия улицы, номера дома.
+    Например: Саратов, Ставропольская, 67
+    */
     function buildGeocodeUrl(locality = '', street = '', building = '') {
-        let l = locality, s = street, n = building;
-
-        if (l >= 2, s > 0, n > 0) {
+        if (locality.length >= 2) {
             let address = '';
-            address += l + ', ' + s + ', ' + n;
+            address += locality + ', ' + street + ', ' + building;
+
             return address;
         }
 
