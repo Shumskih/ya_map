@@ -1,5 +1,5 @@
 /.idea/
 /bitrix/
 /upload/
-/vendor/
-composer.lock
+/local/vendor/
+/local/composer.lock
