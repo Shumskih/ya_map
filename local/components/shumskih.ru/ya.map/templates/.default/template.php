@@ -4,7 +4,6 @@ use Bitrix\Main\Localization\Loc;
 
 $apiKey = $arResult['API_KEY'];
 $this->addExternalJs("https://api-maps.yandex.ru/2.1/?apikey=$apiKey&lang=ru_RU");
-$this->addExternalJs("local/components/shumskih.ru/ya.map/templates/.default/js/scripts.js");
 ?>
 
 <div class="d-flex justify-content-center align-center mt-3 mb-5">
